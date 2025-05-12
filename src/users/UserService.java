@@ -6,8 +6,8 @@ public class UserService implements IService<User> {
     UserStorage userStorage;
 
 
-    public UserService() throws Exception {
-        this.userStorage = new UserStorage();
+    public UserService(UserStorage storage) throws Exception {
+        this.userStorage = storage;
     }
 
     private boolean isValidEmail(String email) {
@@ -31,8 +31,22 @@ public class UserService implements IService<User> {
         if (!isValidEmail(email) || username == null || !isValidPassword(password)) {
             throw new IllegalArgumentException("Invalid user data");
         }
-
-        return new User(email, username, password, phoneNumber);
+        try {
+            User existingUser = userStorage.getUserByEmail(email);
+            if (existingUser != null) {
+                throw new IllegalArgumentException("Email already exists");
+            }
+            else {
+                User newUser = new User(email, username, password, phoneNumber);
+                return newUser;
+            }
+        }
+        catch (IllegalArgumentException e) {
+            throw new RuntimeException("Error creating user", e);
+        }
+         catch (Exception e) {
+            throw new RuntimeException("Error creating user", e);
+        }
     }
 
     public User login(String email, String password) throws IllegalArgumentException {
