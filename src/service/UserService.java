@@ -1,5 +1,7 @@
-package users;
-import service.IService;
+package service;
+import storage.UserStorage;
+import users.User;
+
 import java.util.Dictionary;
 
 public class UserService implements IService<User> {

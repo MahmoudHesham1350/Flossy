@@ -5,9 +5,9 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.UUID;
 
-import budget.BudgetStorage;
 import reminder.ReminderListener;
-import reminder.ReminderStorage;
+import storage.BudgetStorage;
+import storage.ReminderStorage;
 
 public class User implements Serializable {
     private final Notification notifications;

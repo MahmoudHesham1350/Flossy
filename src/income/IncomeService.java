@@ -1,6 +1,8 @@
 package income;
 
 import service.IService;
+import storage.IncomeStorage;
+
 import java.io.IOException;
 import java.util.Dictionary;
 

@@ -1,6 +1,7 @@
-package users;
-import storage.UltraSimpleStorage;
+package storage;
 import java.io.IOException;
+
+import users.User;
 
 public class UserStorage extends UltraSimpleStorage<User> {
 

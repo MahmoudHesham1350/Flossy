@@ -1,7 +1,7 @@
-package budget;
-import storage.UltraSimpleStorage;
-
+package storage;
 import java.util.UUID;
+
+import budget.Budget;
 
 public class BudgetStorage extends UltraSimpleStorage<Budget> {
 

@@ -1,10 +1,12 @@
-package controller;
+package Factory;
 
 import java.io.IOException;
 
 import budget.Budget;
-import budget.BudgetService;
-import budget.BudgetStorage;
+import controller.Controller;
+import controller.IController;
+import service.BudgetService;
+import storage.BudgetStorage;
 import users.User;
 
 public class BudgetControllerFactory implements IControllerFactory<Budget>{

@@ -1,7 +1,8 @@
-package reminder;
+package storage;
 import java.io.IOException;
-import storage.UltraSimpleStorage;
 import java.util.UUID;
+
+import reminder.IReminder;
 
 public class ReminderStorage extends UltraSimpleStorage<IReminder> {
 

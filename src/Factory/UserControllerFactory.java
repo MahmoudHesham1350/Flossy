@@ -1,11 +1,13 @@
-package controller;
+package Factory;
 
 import java.io.IOException;
 
+import controller.IController;
+import controller.UserController;
+import service.UserService;
 import storage.UltraSimpleStorage;
+import storage.UserStorage;
 import users.User;
-import users.UserService;
-import users.UserStorage;
 
 public class UserControllerFactory implements IControllerFactory<User> {
     @Override

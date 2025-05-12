@@ -1,6 +1,5 @@
 package controller;
 
-import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.List;
 

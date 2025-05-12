@@ -1,7 +1,7 @@
-package budget;
+package service;
 import java.util.Dictionary;
 
-import service.IService;
+import budget.Budget;
 
 public class BudgetService implements IService<Budget> {
 

@@ -5,7 +5,7 @@ import java.util.List;
 
 import income.Income;
 import income.IncomeService;
-import income.IncomeStorage;
+import storage.IncomeStorage;
 
 public class IncomeController implements IController<Income> {
     private final IncomeService incomeService;
@@ -33,7 +33,6 @@ public class IncomeController implements IController<Income> {
     public List<Income> getAll() {
         return incomeStorage.getAll();
     }
-
     public String addIncome(Dictionary<String, String> data) {
         try {
             Income income = incomeService.validate(data);

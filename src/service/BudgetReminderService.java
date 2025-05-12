@@ -1,20 +1,14 @@
-package reminder;
-
-import service.IService;
+package service;
 import budget.Budget;
-import budget.BudgetStorage;
-
-import java.io.IOException;
+import reminder.BudgetReminder;
+import reminder.IReminder;
 import java.util.Dictionary;
-import java.util.UUID;
 
-/**
- * Service for creating and validating BudgetReminder objects.
- */
+
 public class BudgetReminderService implements IService<IReminder> {
 
     @Override
-    public IReminder validate(Dictionary<String, String> data) throws IllegalArgumentException {
+    public BudgetReminder validate(Dictionary<String, String> data) throws IllegalArgumentException {
         // Extract data
         String title = data.get("title");
         String category = data.get("category");
@@ -61,30 +55,6 @@ public class BudgetReminderService implements IService<IReminder> {
         // Create and return the budget reminder
         return new BudgetReminder(title, budget);
     }
-    
-    /**
-     * Saves a budget reminder and its associated budget to storage.
-     * 
-     * @param reminder The BudgetReminder to save
-     */
-    public void saveReminder(IReminder reminder) {
-        if (reminder instanceof BudgetReminder) {
-            BudgetReminder budgetReminder = (BudgetReminder) reminder;
-            
-            // Save the reminder
-            reminderStorage.add(budgetReminder);
-            try {
-                reminderStorage.save(reminderStorage.getAll());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to save budget reminder", e);
-            }
-            
-            // TODO: Extract budget and save it to budget storage
-            // This would require adding a method to get the budget from BudgetReminder
-            // Budget budget = budgetReminder.getBudget();
-            // budgetStorage.add(budget);
-        } else {
-            throw new IllegalArgumentException("Expected a BudgetReminder instance");
-        }
-    }
+
+
 }

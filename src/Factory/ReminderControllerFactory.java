@@ -1,7 +1,9 @@
-package controller;
+package Factory;
 import java.io.IOException;
 
+import controller.IController;
 import reminder.*;
+import storage.ReminderStorage;
 import users.User;
 
 public class ReminderControllerFactory implements IControllerFactory<IReminder>{
@@ -13,6 +15,7 @@ public class ReminderControllerFactory implements IControllerFactory<IReminder>{
     @Override
     public IController<IReminder> createController() throws ClassNotFoundException, IOException, Exception {
         ReminderStorage storage = new ReminderStorage(user.getID());
+        
         
     }
     
