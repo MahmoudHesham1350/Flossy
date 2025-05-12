@@ -6,8 +6,8 @@ public class UserService implements IService<User> {
     UserStorage userStorage;
 
 
-    public UserService() throws Exception {
-        this.userStorage = new UserStorage();
+    public UserService(UserStorage storage) throws Exception {
+        this.userStorage = storage;
     }
 
     private boolean isValidEmail(String email) {

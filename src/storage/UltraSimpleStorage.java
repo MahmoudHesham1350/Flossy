@@ -1,13 +1,21 @@
 package storage;
 
+import java.util.ArrayList;
 import java.io.*;
 import java.util.List;
 
 public abstract class UltraSimpleStorage<T extends Serializable> {
     private final String filename;
+    protected List<T> storage;
 
     public UltraSimpleStorage(String filename) {
         this.filename = filename;
+        try {
+            this.storage = this.load();
+        } catch (Exception e) {
+            System.out.println("No previous data found. Starting fresh.");
+            this.storage = new ArrayList<>();
+        }
     }
 
     public void save(List<T> objectsToSave) throws IOException {
@@ -24,4 +32,17 @@ public abstract class UltraSimpleStorage<T extends Serializable> {
             return (List<T>) ois.readObject();
         }
     }
+
+    public void add(T object) {
+        storage.add(object);
+    }
+
+    public void remove(T object) {
+        storage.remove(object);
+    }
+
+    public List<T> getAll() {
+        return storage;
+    }
+
 }

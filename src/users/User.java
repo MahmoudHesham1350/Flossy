@@ -30,7 +30,7 @@ public class User implements Serializable {
         this.notifications = new Notification();
         try {
             this.reminderStorage = new ReminderStorage(this.id);
-            this.reminderListener = new ReminderListener(this.notifications, this.reminderStorage.getAllReminders());
+            this.reminderListener = new ReminderListener(this.notifications, this.reminderStorage.getAll());
             this.budgetStorage = new BudgetStorage(this.id);
 
         } catch (IOException | ClassNotFoundException e) {
@@ -47,6 +47,10 @@ public class User implements Serializable {
 
     public String getEmail() {
         return email;
+    }
+
+    public UUID getID(){
+        return this.id;
     }
 
     public void setPassword(String password) {
