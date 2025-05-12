@@ -5,12 +5,14 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.UUID;
 
+import budget.BudgetStorage;
 import reminder.ReminderListener;
 import reminder.ReminderStorage;
 
 public class User implements Serializable {
     private final Notification notifications;
     private final ReminderStorage reminderStorage;
+    private final BudgetStorage budgetStorage;
     private final ReminderListener reminderListener;
     private final UUID id;
     private String email;
@@ -29,6 +31,7 @@ public class User implements Serializable {
         try {
             this.reminderStorage = new ReminderStorage(this.id);
             this.reminderListener = new ReminderListener(this.notifications, this.reminderStorage.getAllReminders());
+            this.budgetStorage = new BudgetStorage(this.id);
 
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("Error initializing ReminderStorage", e);
