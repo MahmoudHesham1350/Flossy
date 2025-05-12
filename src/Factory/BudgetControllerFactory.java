@@ -12,7 +12,7 @@ import users.User;
 public class BudgetControllerFactory implements IControllerFactory<Budget>{
     User user;
 
-    BudgetControllerFactory(User logedinUser){
+    public BudgetControllerFactory(User logedinUser){
         this.user = logedinUser;
     }
 

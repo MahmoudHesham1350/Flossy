@@ -32,5 +32,9 @@ public class Controller <T extends Serializable> implements IController<T> {
         return storage.getAll();
     }
 
+    public void remove(T object) {
+        storage.remove(object);
+    }
+
     
 }

@@ -1,5 +1,6 @@
 package users;
 
+import java.util.ArrayList;
 import java.util.List;
 import reminder.IReminder;
 
@@ -7,6 +8,7 @@ public class Notification {
     private List<IReminder> reminders;
 
     Notification() {
+        this.reminders = new ArrayList<IReminder>();
     }
 
     public int getNumberOfReminders() {

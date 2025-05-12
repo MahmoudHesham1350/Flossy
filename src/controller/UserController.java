@@ -20,23 +20,16 @@ public class UserController implements IController<User> {
 
     public void loginUser(String email, String password) throws Exception {
         this.user = service.login(email, password);
-        if(this.user != null) {
-            System.out.println("User logged in successfully");
-        } else {
-            System.out.println("Invalid email or password");
+        if (this.user == null) {
+            throw new IllegalArgumentException("Invalid email or password");
         }
     }
 
     @Override
     public void create(Dictionary <String, String> data) {
-        try {
             User user = service.validate(data);
             storage.add(user);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Error: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("An unexpected error occurred: " + e.getMessage());
-        }
+
     }
 
     @Override
@@ -50,6 +43,10 @@ public class UserController implements IController<User> {
 
     public User getUser(){
         return this.user;
+    }
+
+    public void remove(User user) {
+        storage.remove(user);
     }
 
 

@@ -18,7 +18,7 @@ public class PaymentReminder implements IReminder {
         }
         LocalDate nextDate = reminderDate.plusDays(recurrence);
         while (nextDate.isBefore(LocalDate.now())) {
-            nextDate = nextDate.plusDays(recurrence);
+            reminderDate = reminderDate.plusDays(recurrence);
         }
     }
 

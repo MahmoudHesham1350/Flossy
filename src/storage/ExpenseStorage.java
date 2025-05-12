@@ -1,9 +1,8 @@
-package Expense;
-
-import income.Income;
-import storage.UltraSimpleStorage;
+package storage;
 
 import java.io.IOException;
+
+import Expense.Expense;
 
 public class ExpenseStorage extends UltraSimpleStorage<Expense>{
 

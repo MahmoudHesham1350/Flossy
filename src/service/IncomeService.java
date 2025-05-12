@@ -1,10 +1,9 @@
-package income;
+package service;
 
-import service.IService;
 import storage.IncomeStorage;
-
-import java.io.IOException;
 import java.util.Dictionary;
+
+import income.Income;
 
 public class IncomeService implements IService<Income> {
     private IncomeStorage incomeStorage;
@@ -22,7 +21,6 @@ public class IncomeService implements IService<Income> {
     }
 
     private boolean isValidDate(String date) {
-        // Basic validation - can be enhanced with proper date format checking
         return date != null && !date.trim().isEmpty();
     }
 
