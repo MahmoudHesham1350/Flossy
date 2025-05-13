@@ -4,7 +4,7 @@ import storage.ExpenseStorage;
 
 import java.util.Dictionary;
 
-import Expense.Expense;
+import models.Expense;
 
 public class ExpenseService implements IService<Expense> {
     private ExpenseStorage expenseStorage;

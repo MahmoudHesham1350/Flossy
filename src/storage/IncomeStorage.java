@@ -1,7 +1,7 @@
 package storage;
 import java.io.IOException;
 
-import income.Income;
+import models.Income;
 public class IncomeStorage extends UltraSimpleStorage<Income>{
 
     public IncomeStorage() throws IOException, ClassNotFoundException {

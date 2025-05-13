@@ -1,8 +1,9 @@
 package service;
 import storage.UserStorage;
-import users.User;
 
 import java.util.Dictionary;
+
+import models.User;
 
 public class UserService implements IService<User> {
     UserStorage userStorage;

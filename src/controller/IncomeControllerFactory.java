@@ -3,7 +3,7 @@ package controller;
 import java.io.IOException;
 
 import Factory.IControllerFactory;
-import income.Income;
+import models.Income;
 import service.IncomeService;
 import storage.IncomeStorage;
 

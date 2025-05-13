@@ -2,7 +2,7 @@ package storage;
 
 import java.io.IOException;
 
-import Expense.Expense;
+import models.Expense;
 
 public class ExpenseStorage extends UltraSimpleStorage<Expense>{
 

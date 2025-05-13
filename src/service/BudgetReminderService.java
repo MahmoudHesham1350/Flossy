@@ -1,8 +1,9 @@
 package service;
-import budget.Budget;
-import reminder.BudgetReminder;
 import reminder.IReminder;
 import java.util.Dictionary;
+
+import models.Budget;
+import models.BudgetReminder;
 
 
 public class BudgetReminderService implements IService<IReminder> {

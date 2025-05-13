@@ -1,8 +1,6 @@
 package reminder;
 import java.util.List;
 
-import users.Notification;
-
 public class ReminderListener  {
     private Notification notification;
     private List<IReminder> reminders;

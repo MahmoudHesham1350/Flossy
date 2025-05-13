@@ -1,13 +1,13 @@
 package Factory;
 import java.io.IOException;
 
-import budget.Budget;
 import controller.Controller;
 import controller.IController;
+import models.Budget;
+import models.User;
 import reminder.*;
 import service.BudgetReminderService;
 import storage.ReminderStorage;
-import users.User;
 
 public class BudgetReminderControllerFactory implements IControllerFactory<IReminder>{
     User user;

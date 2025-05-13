@@ -9,10 +9,7 @@ import java.time.format.DateTimeFormatter;
 // Import controllers and factories
 import controller.*;
 import Factory.*;
-import users.*;
-import Expense.*;
-import income.*;
-import budget.*;
+import models.*;
 import reminder.*;
 import service.*;
 import storage.*;

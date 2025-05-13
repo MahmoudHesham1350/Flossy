@@ -5,8 +5,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Dictionary;
 
+import models.PaymentReminder;
 import reminder.IReminder;
-import reminder.PaymentReminder;
 
 public class PaymentReminderService implements IService<IReminder> {
     @Override

@@ -3,9 +3,9 @@ package controller;
 import java.util.Dictionary;
 import java.util.List;
 
+import models.User;
 import service.UserService;
 import storage.UserStorage;
-import users.*;
 
 public class UserController implements IController<User> {
     private User user;

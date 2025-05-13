@@ -1,11 +1,11 @@
 package Factory;
 
 import controller.IController;
+import models.User;
 import controller.Controller;
 import reminder.IReminder;
 import service.PaymentReminderService;
 import storage.ReminderStorage;
-import users.User;
 
 public class PaymentReminderControllerFactory implements IControllerFactory<IReminder> {
     User user;

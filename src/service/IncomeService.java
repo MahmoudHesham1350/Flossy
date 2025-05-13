@@ -3,7 +3,7 @@ package service;
 import storage.IncomeStorage;
 import java.util.Dictionary;
 
-import income.Income;
+import models.Income;
 
 public class IncomeService implements IService<Income> {
     private IncomeStorage incomeStorage;
