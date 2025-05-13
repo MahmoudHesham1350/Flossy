@@ -5,6 +5,7 @@ import java.util.List;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import javax.swing.Timer;
 
 // Import controllers and factories
 import controller.*;
@@ -32,6 +33,11 @@ public class GUI {
     private Controller<Budget> budgetController;
     private Controller<IReminder> paymentReminderController;
     private Controller<IReminder> budgetRemindController;
+    
+    // Notification system
+    private Notification notification;
+    private ReminderListener reminderListener;
+    private Timer reminderCheckTimer;
     
     // Notification panel
     private JPanel notificationPanel;
@@ -67,6 +73,19 @@ public class GUI {
             budgetController = (Controller<Budget>) new BudgetControllerFactory(currentUser).createController();
             paymentReminderController = (Controller<IReminder>) new PaymentReminderControllerFactory(currentUser).createController();
             budgetRemindController = (Controller<IReminder>) new BudgetReminderControllerFactory(currentUser).createController();
+            
+            // Initialize notification system
+            notification = new Notification();
+            List<IReminder> allReminders = new ArrayList<>();
+            allReminders.addAll(paymentReminderController.getAll());
+            allReminders.addAll(budgetRemindController.getAll());
+            reminderListener = new ReminderListener(notification, allReminders);
+            
+            // Start reminder checking timer
+            startReminderCheckTimer();
+            
+            // Initial reminder check
+            checkReminders();
         } catch (Exception e) {
             showError("Error initializing user data", e);
         }
@@ -174,67 +193,51 @@ public class GUI {
 
     private void initDashboardPanel() {
         dashboardPanel = new JPanel(new BorderLayout());
-        
-        // Create components for dashboard
-        JPanel sidePanel = new JPanel(new GridLayout(9, 1, 0, 10));
-        sidePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        sidePanel.setPreferredSize(new Dimension(200, frame.getHeight()));
-        
+
+        // Content panel for main page content
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // User welcome message
-        JLabel welcomeLabel = new JLabel("Welcome, " + currentUser.getEmail());
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        
-        // Create navigation buttons
-        JButton profileBtn = new JButton("View Profile");
-        JButton addExpenseBtn = new JButton("Add Expense");
-        JButton viewExpensesBtn = new JButton("View Expenses");
-        JButton addIncomeBtn = new JButton("Add Income");
-        JButton viewIncomeBtn = new JButton("View Income");
-        JButton setBudgetBtn = new JButton("Set Budget");
-        JButton viewBudgetBtn = new JButton("View Budget");
-        JButton viewRemindersBtn = new JButton("View Reminders");
+
+        // Navigation panel at the bottom
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        navPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JButton profileBtn = new JButton("Profile");
+        JButton expensesBtn = new JButton("Expenses");
+        JButton incomeBtn = new JButton("Income");
+        JButton budgetsBtn = new JButton("Budgets");
+        JButton remindersBtn = new JButton("Reminders");
         JButton logoutBtn = new JButton("Logout");
-        
-        // Add action listeners
+
+        navPanel.add(profileBtn);
+        navPanel.add(expensesBtn);
+        navPanel.add(incomeBtn);
+        navPanel.add(budgetsBtn);
+        navPanel.add(remindersBtn);
+        navPanel.add(logoutBtn);
+
+        // Action listeners for navigation
         profileBtn.addActionListener(e -> showProfilePanel(contentPanel));
-        addExpenseBtn.addActionListener(e -> showAddExpensePanel(contentPanel));
-        viewExpensesBtn.addActionListener(e -> showExpensesPanel(contentPanel));
-        addIncomeBtn.addActionListener(e -> showAddIncomePanel(contentPanel));
-        viewIncomeBtn.addActionListener(e -> showIncomePanel(contentPanel));
-        setBudgetBtn.addActionListener(e -> showAddBudgetPanel(contentPanel));
-        viewBudgetBtn.addActionListener(e -> showBudgetsPanel(contentPanel));
-        viewRemindersBtn.addActionListener(e -> showRemindersPanel(contentPanel));
+        expensesBtn.addActionListener(e -> showExpensesPanel(contentPanel));
+        incomeBtn.addActionListener(e -> showIncomePanel(contentPanel));
+        budgetsBtn.addActionListener(e -> showBudgetsPanel(contentPanel));
+        remindersBtn.addActionListener(e -> showRemindersPanel(contentPanel));
         logoutBtn.addActionListener(e -> logout());
-        
-        // Add buttons to side panel
-        sidePanel.add(welcomeLabel);
-        sidePanel.add(profileBtn);
-        sidePanel.add(addExpenseBtn);
-        sidePanel.add(viewExpensesBtn);
-        sidePanel.add(addIncomeBtn);
-        sidePanel.add(viewIncomeBtn);
-        sidePanel.add(setBudgetBtn);
-        sidePanel.add(viewBudgetBtn);
-        sidePanel.add(viewRemindersBtn);
-        sidePanel.add(logoutBtn);
-        
-        // Initialize notification panel
+
+        // Show welcome panel by default
+        showWelcomePanel(contentPanel);
+
+        // Notification panel
         notificationPanel = new JPanel();
         notificationPanel.setLayout(new BoxLayout(notificationPanel, BoxLayout.Y_AXIS));
         notificationPanel.setBorder(BorderFactory.createTitledBorder("Notifications"));
-        notificationPanel.setPreferredSize(new Dimension(frame.getWidth() - 220, 150));
-        
-        // Add default welcome content to content panel
-        showWelcomePanel(contentPanel);
-        
-        // Add components to dashboard
-        dashboardPanel.add(sidePanel, BorderLayout.WEST);
+        notificationPanel.setPreferredSize(new Dimension(frame.getWidth(), 100));
+
+        // Add panels to dashboard
         dashboardPanel.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
-        dashboardPanel.add(notificationPanel, BorderLayout.SOUTH);
+        dashboardPanel.add(navPanel, BorderLayout.SOUTH);
+        dashboardPanel.add(notificationPanel, BorderLayout.NORTH);
     }
     
     private void showWelcomePanel(JPanel contentPanel) {
@@ -286,75 +289,15 @@ public class GUI {
         contentPanel.repaint();
     }
     
-    private void showAddExpensePanel(JPanel contentPanel) {
-        contentPanel.removeAll();
-        
-        JLabel titleLabel = new JLabel("Add Expense");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
-        formPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        formPanel.setMaximumSize(new Dimension(400, 150));
-        
-        JTextField categoryField = new JTextField();
-        JTextField amountField = new JTextField();
-        JTextField dateField = new JTextField();
-        JTextField paymentMethodField = new JTextField();
-        JCheckBox recurringCheckbox = new JCheckBox("Recurring Expense");
-        
-        formPanel.add(new JLabel("Category:"));
-        formPanel.add(categoryField);
-        
-        formPanel.add(new JLabel("Amount:"));
-        formPanel.add(amountField);
-        
-        formPanel.add(new JLabel("Date (yyyy-MM-dd):"));
-        formPanel.add(dateField);
-        
-        formPanel.add(new JLabel("Payment Method:"));
-        formPanel.add(paymentMethodField);
-        
-        JButton saveBtn = new JButton("Save Expense");
-        saveBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        saveBtn.addActionListener(e -> {
-            try {
-                Dictionary<String, String> expenseData = new Hashtable<>();
-                expenseData.put("category", categoryField.getText());
-                expenseData.put("amount", amountField.getText());
-                expenseData.put("date", dateField.getText());
-                expenseData.put("paymentMethod", paymentMethodField.getText());
-                expenseData.put("isRecurring", String.valueOf(recurringCheckbox.isSelected()));
-                
-                expenseController.create(expenseData);
-                JOptionPane.showMessageDialog(frame, "Expense added successfully!");
-                
-                // Clear fields
-                categoryField.setText("");
-                amountField.setText("");
-                dateField.setText("");
-                paymentMethodField.setText("");
-                recurringCheckbox.setSelected(false);
-                
-            } catch (Exception ex) {
-                showError("Error adding expense", ex);
-            }
-        });
-        
-        contentPanel.add(titleLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        contentPanel.add(formPanel);
-        contentPanel.add(recurringCheckbox);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(saveBtn);
-        
-        contentPanel.revalidate();
-        contentPanel.repaint();
-    }
-    
     private void showExpensesPanel(JPanel contentPanel) {
         contentPanel.removeAll();
+        
+        // Add Expense button
+        JButton addExpenseBtn = new JButton("Add Expense");
+        addExpenseBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        addExpenseBtn.addActionListener(e -> showAddExpensePanel(contentPanel));
+        contentPanel.add(addExpenseBtn);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         
         JLabel titleLabel = new JLabel("Your Expenses");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
@@ -373,6 +316,113 @@ public class GUI {
             data[i][2] = expense.getDate();
             data[i][3] = expense.getPaymentMethod() != null ? expense.getPaymentMethod() : "N/A";
             data[i][4] = expense.isRecurring() ? "Yes" : "No";
+        }
+        
+        JTable table = new JTable(data, columnNames);
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+        scrollPane.setPreferredSize(new Dimension(contentPanel.getWidth(), 300));
+        
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        contentPanel.add(scrollPane);
+        
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+    
+    private void showAddExpensePanel(JPanel contentPanel) {
+        contentPanel.removeAll();
+        
+        JLabel titleLabel = new JLabel("Add Expense");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        formPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.setMaximumSize(new Dimension(400, 150));
+        
+        JTextField categoryField = new JTextField();
+        JTextField amountField = new JTextField();
+        JTextField dateField = new JTextField(LocalDate.now().toString());
+        JTextField paymentMethodField = new JTextField();
+        JCheckBox recurringCheckbox = new JCheckBox("Recurring Expense");
+        
+        formPanel.add(new JLabel("Category:"));
+        formPanel.add(categoryField);
+        
+        formPanel.add(new JLabel("Amount:"));
+        formPanel.add(amountField);
+        
+        formPanel.add(new JLabel("Date (yyyy-MM-dd):"));
+        formPanel.add(dateField);
+        
+        formPanel.add(new JLabel("Payment Method:"));
+        formPanel.add(paymentMethodField);
+        
+        formPanel.add(new JLabel("")); // Empty label for alignment
+        formPanel.add(recurringCheckbox);
+        
+        JButton saveBtn = new JButton("Save Expense");
+        saveBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        saveBtn.addActionListener(e -> {
+            try {
+                Dictionary<String, String> expenseData = new Hashtable<>();
+                expenseData.put("category", categoryField.getText());
+                expenseData.put("amount", amountField.getText());
+                expenseData.put("date", dateField.getText());
+                expenseData.put("paymentMethod", paymentMethodField.getText());
+                expenseData.put("isRecurring", String.valueOf(recurringCheckbox.isSelected()));
+                
+                expenseController.create(expenseData);
+                JOptionPane.showMessageDialog(frame, "Expense added successfully!");
+                // Clear fields
+                categoryField.setText("");
+                amountField.setText("");
+                dateField.setText(LocalDate.now().toString());
+                paymentMethodField.setText("");
+                recurringCheckbox.setSelected(false);
+            } catch (Exception ex) {
+                showError("Error adding expense", ex);
+            }
+        });
+        
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        contentPanel.add(formPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(saveBtn);
+        
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+    
+    private void showIncomePanel(JPanel contentPanel) {
+        contentPanel.removeAll();
+        
+        // Add Income button
+        JButton addIncomeBtn = new JButton("Add Income");
+        addIncomeBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        addIncomeBtn.addActionListener(e -> showAddIncomePanel(contentPanel));
+        contentPanel.add(addIncomeBtn);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        JLabel titleLabel = new JLabel("Your Income");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Create table model for income entries
+        String[] columnNames = {"Source", "Amount", "Date"};
+        
+        List<Income> incomeEntries = incomeController.getAll();
+        Object[][] data = new Object[incomeEntries.size()][3];
+        
+        for (int i = 0; i < incomeEntries.size(); i++) {
+            Income income = incomeEntries.get(i);
+            data[i][0] = income.getSource();
+            data[i][1] = income.getAmount();
+            data[i][2] = income.getDate();
         }
         
         JTable table = new JTable(data, columnNames);
@@ -445,30 +495,52 @@ public class GUI {
         contentPanel.repaint();
     }
     
-    private void showIncomePanel(JPanel contentPanel) {
+    private void showBudgetsPanel(JPanel contentPanel) {
         contentPanel.removeAll();
         
-        JLabel titleLabel = new JLabel("Your Income");
+        // Add Budget button
+        JButton addBudgetBtn = new JButton("Add Budget");
+        addBudgetBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        addBudgetBtn.addActionListener(e -> showAddBudgetPanel(contentPanel));
+        contentPanel.add(addBudgetBtn);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        JLabel titleLabel = new JLabel("Your Budgets");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Create table model for income entries
-        String[] columnNames = {"Source", "Amount", "Date"};
+        JPanel budgetListPanel = new JPanel();
+        budgetListPanel.setLayout(new BoxLayout(budgetListPanel, BoxLayout.Y_AXIS));
+        budgetListPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        budgetListPanel.setBackground(Color.WHITE);
         
-        List<Income> incomeEntries = incomeController.getAll();
-        Object[][] data = new Object[incomeEntries.size()][3];
+        List<Budget> budgets = budgetController.getAll();
         
-        for (int i = 0; i < incomeEntries.size(); i++) {
-            Income income = incomeEntries.get(i);
-            data[i][0] = income.getSource();
-            data[i][1] = income.getAmount();
-            data[i][2] = income.getDate();
+        if (budgets.isEmpty()) {
+            JLabel noBudgetsLabel = new JLabel("No budgets set yet.");
+            noBudgetsLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            budgetListPanel.add(noBudgetsLabel);
+        } else {
+            for (Budget budget : budgets) {
+                JPanel card = new JPanel();
+                card.setLayout(new BorderLayout());
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(180, 180, 180)),
+                    BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+                card.setBackground(new Color(245, 245, 245));
+                card.setMaximumSize(new Dimension(contentPanel.getWidth() - 40, 40));
+
+                JLabel summaryLabel = new JLabel(budget.getAnalysis());
+                card.add(summaryLabel, BorderLayout.CENTER);
+
+                budgetListPanel.add(card);
+                budgetListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            }
         }
         
-        JTable table = new JTable(data, columnNames);
-        JScrollPane scrollPane = new JScrollPane(table);
+        JScrollPane scrollPane = new JScrollPane(budgetListPanel);
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-        scrollPane.setPreferredSize(new Dimension(contentPanel.getWidth(), 300));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -481,7 +553,7 @@ public class GUI {
     private void showAddBudgetPanel(JPanel contentPanel) {
         contentPanel.removeAll();
         
-        JLabel titleLabel = new JLabel("Set Budget");
+        JLabel titleLabel = new JLabel("Add Budget");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
@@ -514,12 +586,12 @@ public class GUI {
                 
                 budgetController.create(budgetData);
                 JOptionPane.showMessageDialog(frame, "Budget set successfully!");
-                
                 // Clear fields
                 categoryField.setText("");
                 amountField.setText("");
                 recurrenceField.setText("0");
-                
+                // Refresh budgets list
+                showBudgetsPanel(contentPanel);
             } catch (Exception ex) {
                 showError("Error setting budget", ex);
             }
@@ -535,46 +607,6 @@ public class GUI {
         contentPanel.repaint();
     }
     
-    private void showBudgetsPanel(JPanel contentPanel) {
-        contentPanel.removeAll();
-        
-        JLabel titleLabel = new JLabel("Your Budgets");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JPanel budgetListPanel = new JPanel();
-        budgetListPanel.setLayout(new BoxLayout(budgetListPanel, BoxLayout.Y_AXIS));
-        budgetListPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        List<Budget> budgets = budgetController.getAll();
-        
-        if (budgets.isEmpty()) {
-            JLabel noBudgetsLabel = new JLabel("No budgets set yet.");
-            budgetListPanel.add(noBudgetsLabel);
-        } else {
-            for (Budget budget : budgets) {
-                JPanel budgetPanel = new JPanel();
-                budgetPanel.setLayout(new BoxLayout(budgetPanel, BoxLayout.Y_AXIS));
-                budgetPanel.setBorder(BorderFactory.createTitledBorder(budget.getAnalysis()));
-                budgetPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-                budgetPanel.setMaximumSize(new Dimension(contentPanel.getWidth() - 20, 150));
-                
-                budgetListPanel.add(budgetPanel);
-                budgetListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            }
-        }
-        
-        JScrollPane scrollPane = new JScrollPane(budgetListPanel);
-        scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        contentPanel.add(titleLabel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        contentPanel.add(scrollPane);
-        
-        contentPanel.revalidate();
-        contentPanel.repaint();
-    }
-    
     private void showRemindersPanel(JPanel contentPanel) {
         contentPanel.removeAll();
         
@@ -585,22 +617,23 @@ public class GUI {
         JPanel reminderPanel = new JPanel();
         reminderPanel.setLayout(new BoxLayout(reminderPanel, BoxLayout.Y_AXIS));
         
-        JPanel addReminderPanel = new JPanel(new GridLayout(4, 2, 10, 10)); // Changed to 4 rows
+        JPanel addReminderPanel = new JPanel(new GridLayout(5, 2, 10, 10)); // Now 5 rows
         addReminderPanel.setBorder(BorderFactory.createTitledBorder("Add Budget Reminder"));
-        addReminderPanel.setMaximumSize(new Dimension(contentPanel.getWidth() - 20, 150));
+        addReminderPanel.setMaximumSize(new Dimension(contentPanel.getWidth() - 20, 180));
         
         JTextField messageField = new JTextField();
-        
+        JTextField dateField = new JTextField(LocalDate.now().toString());
         // Create budget selection combo box
         JComboBox<String> budgetCombo = new JComboBox<>();
         List<Budget> budgets = budgetController.getAll();
         for (Budget budget : budgets) {
-            budgetCombo.addItem(budget.getAnalysis()); // Or any other budget representation
+            budgetCombo.addItem(budget.getAnalysis());
         }
         
         addReminderPanel.add(new JLabel("Message:"));
         addReminderPanel.add(messageField);
-        
+        addReminderPanel.add(new JLabel("Date (yyyy-MM-dd):"));
+        addReminderPanel.add(dateField);
         addReminderPanel.add(new JLabel("Select Budget:"));
         addReminderPanel.add(budgetCombo);
         
@@ -609,27 +642,41 @@ public class GUI {
         
         addBtn.addActionListener(e -> {
             try {
+                String message = messageField.getText().trim();
+                String date = dateField.getText().trim();
+                if (message.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Message cannot be empty!", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (date.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Date cannot be empty!", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                // Validate date format
+                try {
+                    LocalDate.parse(date);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Date must be in yyyy-MM-dd format!", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 int selectedIndex = budgetCombo.getSelectedIndex();
                 if (selectedIndex < 0 || selectedIndex >= budgets.size()) {
-                    throw new IllegalArgumentException("Please select a budget");
+                    JOptionPane.showMessageDialog(frame, "Please select a budget!", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-                
                 Budget selectedBudget = budgets.get(selectedIndex);
-                
                 Dictionary<String, String> reminderData = new Hashtable<>();
-                reminderData.put("message", messageField.getText());
+                reminderData.put("message", message);
+                reminderData.put("date", date);
                 reminderData.put("budgetId", selectedBudget.getId().toString());
-                
                 paymentReminderController.create(reminderData);
                 JOptionPane.showMessageDialog(frame, "Reminder added successfully!");
-                
                 // Clear fields
                 messageField.setText("");
+                dateField.setText(LocalDate.now().toString());
                 budgetCombo.setSelectedIndex(0);
-                
                 // Refresh reminders list
                 showRemindersPanel(contentPanel);
-                
             } catch (Exception ex) {
                 showError("Error adding reminder", ex);
             }
@@ -684,15 +731,66 @@ public class GUI {
         contentPanel.repaint();
     }
     
-    private void logout() {
-        currentUser = null;
-        expenseController = null;
-        incomeController = null;
-        budgetController = null;
-        paymentReminderController = null;
+    private void startReminderCheckTimer() {
+        reminderCheckTimer = new Timer(60000, e -> checkReminders()); // Check every minute
+        reminderCheckTimer.start();
+    }
+
+    private void checkReminders() {
+        reminderListener.checkReminders();
+        updateNotificationPanel();
+    }
+
+    private void updateNotificationPanel() {
+        if (notificationPanel == null) {
+            return;  // Exit if notification panel hasn't been initialized yet
+        }
         
+        notificationPanel.removeAll();
+        int notificationCount = notification.getNumberOfReminders();
+        
+        if (notificationCount > 0) {
+            JLabel notificationLabel = new JLabel("You have " + notificationCount + " notification(s)!");
+            notificationLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            notificationPanel.add(notificationLabel);
+            
+            // Add each notification
+            for (String message : notification.getNotifications()) {
+                JLabel messageLabel = new JLabel(message);
+                notificationPanel.add(messageLabel);
+            }
+        } else {
+            JLabel noNotificationsLabel = new JLabel("No new notifications");
+            notificationPanel.add(noNotificationsLabel);
+        }
+        
+        notificationPanel.revalidate();
+        notificationPanel.repaint();
+    }
+
+    private void saveAllData() {
+        userController.save();
+        if (currentUser != null) {
+            try {
+                expenseController.save();
+                incomeController.save();
+                budgetController.save();
+                paymentReminderController.save();
+                budgetRemindController.save();
+            } catch (Exception e) {
+                showError("Error saving data", e);
+            }
+        }
+    }
+
+    private void logout() {
+        if (reminderCheckTimer != null) {
+            reminderCheckTimer.stop();
+        }
+        saveAllData();
+        currentUser = null;
         frame.getContentPane().removeAll();
-        clearFields();
+        initLoginPanel();
         frame.add(loginPanel);
         frame.revalidate();
         frame.repaint();
