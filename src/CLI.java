@@ -8,6 +8,11 @@ import Factory.*;
 import models.*;
 import reminder.*;
 
+/**
+ * CLI is the command-line interface for Flossy Personal Finance Manager.
+ * It provides user authentication, navigation, data entry, and notification display using the console.
+ * The CLI supports all major features: registration, login, expenses, income, budgets, reminders, and notifications.
+ */
 public class CLI {
     private static Scanner scanner = new Scanner(System.in);
     private static User currentUser = null;
@@ -29,6 +34,10 @@ public class CLI {
         }
     }
 
+    /**
+     * Initializes controllers for the currently logged-in user and sets up notifications and reminders.
+     * @throws Exception if controller creation fails
+     */
     private static void initializeUserControllers() throws Exception {
         expenseController = (Controller<Expense>) new ExpenseControllerFactory(currentUser).createController();
         incomeController = (Controller<Income>) new IncomeControllerFactory(currentUser).createController();
@@ -45,6 +54,9 @@ public class CLI {
         reminderListener.checkReminders(); // Check for any pending reminders
     }
 
+    /**
+     * Saves all user data to disk.
+     */
     private static void saveAllData() {
         userController.save();
         if (currentUser != null) {
@@ -65,6 +77,10 @@ public class CLI {
         }
     }
 
+    /**
+     * Main entry point for launching the CLI.
+     * @param args Command-line arguments (not used)
+     */
     public static void main(String[] args) {
         while (true) {
             System.out.println("\nWelcome to Flossy - Personal Finance CLI");
@@ -89,6 +105,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Handles user registration from the CLI.
+     */
     private static void registerUser() {
         System.out.print("Enter email: ");
         String email = scanner.nextLine();
@@ -113,6 +132,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Handles user login from the CLI.
+     */
     private static void loginUser() {
         System.out.print("Email: ");
         String email = scanner.nextLine();
@@ -132,6 +154,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays the user menu and handles user actions after login.
+     */
     private static void userMenu() {
         while (true) {
             // Check for any new reminders
@@ -194,6 +219,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays the current user's profile information.
+     */
     private static void viewProfile() {
         System.out.println("\n--- Profile ---");
         Dictionary<String, String> userInfo = currentUser.getUserInfo();
@@ -202,6 +230,9 @@ public class CLI {
         System.out.println("Phone: " + userInfo.get("phoneNumber"));
     }
 
+    /**
+     * Handles adding a new expense from the CLI.
+     */
     private static void addExpense() {
         try {
             System.out.print("Category: ");
@@ -229,6 +260,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays all expenses for the current user.
+     */
     private static void viewExpenses() {
         System.out.println("\n--- Expenses ---");
         List<Expense> expenses = expenseController.getAll();
@@ -251,6 +285,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Handles adding a new income entry from the CLI.
+     */
     private static void addIncome() {
         try {
             System.out.print("Source: ");
@@ -272,6 +309,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays all income entries for the current user.
+     */
     private static void viewIncome() {
         System.out.println("\n--- Income ---");
         List<Income> incomes = incomeController.getAll();
@@ -292,6 +332,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Handles setting a new budget from the CLI.
+     */
     private static void setBudget() {
         try {
             System.out.print("Category: ");
@@ -327,6 +370,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays all budgets for the current user.
+     */
     private static void viewBudget() {
         System.out.println("\n--- Budgets ---");
         List<Budget> budgets = budgetController.getAll();
@@ -341,6 +387,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays all reminders for the current user.
+     */
     private static void viewReminders() {
         System.out.println("\n--- Reminders ---");
         List<IReminder> paymentReminders = paymentReminderController.getAll();
@@ -392,6 +441,9 @@ public class CLI {
         }
     }
 
+    /**
+     * Displays all notifications for the current user.
+     */
     private static void viewNotifications() {
         System.out.println("\n--- Notifications ---");
         List<String> notifications = notification.getNotifications();

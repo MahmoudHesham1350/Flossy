@@ -17,31 +17,38 @@ import reminder.*;
 import service.*;
 import storage.*;
 
+/**
+ * GUI is the graphical user interface for Flossy Personal Finance Manager.
+ * It provides user authentication, navigation, data entry, and notification display using Java Swing.
+ * The GUI supports all major features: registration, login, expenses, income, budgets, reminders, and notifications.
+ */
 public class GUI {
+    /** The main application frame. */
     private JFrame frame;
+    /** Panels for main, login, and dashboard views. */
     private JPanel mainPanel, loginPanel, dashboardPanel;
+    /** Fields for user input during login/registration. */
     private JTextField emailField, usernameField, phoneField;
     private JPasswordField passwordField;
-    
-    // User info
+    /** The currently authenticated user. */
     private User currentUser = null;
-    
-    // Controllers
+    /** Controllers for user, expenses, income, budgets, and reminders. */
     private UserController userController;
     private Controller<Expense> expenseController;
     private Controller<Income> incomeController;
     private Controller<Budget> budgetController;
     private Controller<IReminder> paymentReminderController;
     private Controller<IReminder> budgetRemindController;
-    
-    // Notification system
+    /** Notification system components. */
     private Notification notification;
     private ReminderListener reminderListener;
     private Timer reminderCheckTimer;
-    
-    // Notification panel
+    /** Panel for displaying notifications. */
     private JPanel notificationPanel;
 
+    /**
+     * Constructs the GUI, initializes controllers, and shows the login panel.
+     */
     public GUI() {
         initializeControllers();
         
@@ -55,6 +62,9 @@ public class GUI {
         frame.setVisible(true);
     }
     
+    /**
+     * Initializes the main user controllers (userController).
+     */
     private void initializeControllers() {
         try {
             userController = (UserController) new UserControllerFactory().createController();
@@ -63,6 +73,10 @@ public class GUI {
         }
     }
     
+    /**
+     * Initializes controllers for the currently logged-in user and sets up notifications and reminders.
+     * Throws IllegalStateException if no user is logged in.
+     */
     private void initializeUserSpecificControllers() {
         if (currentUser == null) {
             throw new IllegalStateException("User is not logged in");
@@ -91,6 +105,9 @@ public class GUI {
         }
     }
 
+    /**
+     * Initializes the login panel UI components and their event listeners.
+     */
     private void initLoginPanel() {
         loginPanel = new JPanel(new GridLayout(8, 2, 10, 10));
         loginPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -132,6 +149,10 @@ public class GUI {
         loginBtn.addActionListener(e -> loginUser());
     }
     
+    /**
+     * Handles user registration from the login panel.
+     * Shows a dialog on success or error.
+     */
     private void registerUser() {
         String email = emailField.getText();
         String username = usernameField.getText();
@@ -157,6 +178,10 @@ public class GUI {
         }
     }
     
+    /**
+     * Handles user login from the login panel.
+     * Shows a dialog on error and switches to dashboard on success.
+     */
     private void loginUser() {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
@@ -176,6 +201,9 @@ public class GUI {
         }
     }
     
+    /**
+     * Clears all login/registration input fields.
+     */
     private void clearFields() {
         emailField.setText("");
         usernameField.setText("");
@@ -183,6 +211,9 @@ public class GUI {
         phoneField.setText("");
     }
 
+    /**
+     * Switches the main frame to the dashboard panel after login.
+     */
     private void switchToDashboard() {
         frame.getContentPane().removeAll();
         initDashboardPanel();
@@ -191,6 +222,9 @@ public class GUI {
         frame.repaint();
     }
 
+    /**
+     * Initializes the dashboard panel, navigation, and notification area.
+     */
     private void initDashboardPanel() {
         dashboardPanel = new JPanel(new BorderLayout());
 
@@ -806,6 +840,10 @@ public class GUI {
         e.printStackTrace();
     }
 
+    /**
+     * Main entry point for launching the GUI.
+     * @param args Command-line arguments (not used)
+     */
     public static void main(String[] args) {
         try {
             // Set system look and feel

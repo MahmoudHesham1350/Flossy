@@ -8,7 +8,16 @@ import java.util.Dictionary;
 import models.PaymentReminder;
 import reminder.IReminder;
 
+/**
+ * Service for validating and creating PaymentReminder objects in the Flossy Personal Finance Manager system.
+ */
 public class PaymentReminderService implements IService<IReminder> {
+    /**
+     * Validates payment reminder data and creates a new PaymentReminder object if valid.
+     * @param data The reminder data dictionary
+     * @return The created PaymentReminder object
+     * @throws IllegalArgumentException if validation fails
+     */
     @Override
     public PaymentReminder validate(Dictionary<String, String> data) throws IllegalArgumentException {
         String message = data.get("message");
