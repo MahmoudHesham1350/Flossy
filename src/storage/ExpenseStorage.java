@@ -1,13 +1,14 @@
 package storage;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import models.Expense;
 
 public class ExpenseStorage extends UltraSimpleStorage<Expense>{
 
-    public ExpenseStorage() throws IOException, ClassNotFoundException {
-        super("Expense.dat");
+    public ExpenseStorage(UUID userID) throws IOException, ClassNotFoundException {
+        super(userID + "Expense.dat");
     }
 
     public Expense getIncomeByCategory(String category) {

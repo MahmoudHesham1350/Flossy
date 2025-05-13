@@ -1,18 +1,11 @@
 package service;
 
-import storage.ExpenseStorage;
 
 import java.util.Dictionary;
 
 import models.Expense;
 
 public class ExpenseService implements IService<Expense> {
-    private ExpenseStorage expenseStorage;
-
-    public ExpenseService() throws Exception {
-        this.expenseStorage = new ExpenseStorage();
-    }
-
     private boolean isValidAmount(double amount) {
         return amount > 0;
     }
@@ -63,9 +56,5 @@ public class ExpenseService implements IService<Expense> {
         }
 
         return expense;
-    }
-
-    public Expense getExpenseByCategory(String category) {
-        return expenseStorage.getIncomeByCategory(category);
     }
 }

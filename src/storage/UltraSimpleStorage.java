@@ -18,10 +18,10 @@ public abstract class UltraSimpleStorage<T extends Serializable> {
         }
     }
 
-    public void save(List<T> objectsToSave) throws IOException {
+    public void save() throws IOException {
         try (FileOutputStream fos = new FileOutputStream(filename);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(objectsToSave);
+            oos.writeObject(storage);
         }
         System.out.println("Objects saved successfully to file: " + filename);
     }

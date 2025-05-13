@@ -9,6 +9,8 @@ import java.time.format.DateTimeFormatter;
 // Import controllers and factories
 import controller.*;
 import Factory.*;
+import Factory.IControllerFactory;
+import Factory.UserControllerFactory;
 import models.*;
 import reminder.*;
 import service.*;
@@ -29,6 +31,7 @@ public class GUI {
     private Controller<Income> incomeController;
     private Controller<Budget> budgetController;
     private Controller<IReminder> paymentReminderController;
+    private Controller<IReminder> budgetRemindController;
     
     // Notification panel
     private JPanel notificationPanel;
@@ -48,39 +51,22 @@ public class GUI {
     
     private void initializeControllers() {
         try {
-            // Initialize user controller
-            UserControllerFactory userFactory = new UserControllerFactory();
-            userController = (UserController) userFactory.createController();
+            userController = (UserController) new UserControllerFactory().createController();
         } catch (Exception e) {
             showError("Error initializing application", e);
         }
     }
     
     private void initializeUserSpecificControllers() {
-        if (currentUser == null) return;
-        
+        if (currentUser == null) {
+            throw new IllegalStateException("User is not logged in");
+        }
         try {
-            // Initialize controllers specific to the logged-in user
-            BudgetControllerFactory budgetFactory = new BudgetControllerFactory(currentUser);
-            budgetController = (Controller<Budget>) budgetFactory.createController();
-            
-            // Initialize expense controller
-            IControllerFactory<Expense> expenseFactory = new IControllerFactory<Expense>() {
-                @Override
-                public IController<Expense> createController() throws Exception {
-                    return new Controller<>(new ExpenseService(), new ExpenseStorage());
-                }
-            };
-            expenseController = (Controller<Expense>) expenseFactory.createController();
-            
-            // Initialize income controller
-            IncomeControllerFactory incomeFactory = new IncomeControllerFactory();
-            incomeController = (Controller<Income>) incomeFactory.createController();
-            
-            // Initialize payment reminder controller
-            PaymentReminderControllerFactory reminderFactory = new PaymentReminderControllerFactory(currentUser);
-            paymentReminderController = (Controller<IReminder>) reminderFactory.createController();
-            
+            expenseController = (Controller<Expense>) new ExpenseControllerFactory(currentUser).createController();
+            incomeController = (Controller<Income>) new IncomeControllerFactory(currentUser).createController();
+            budgetController = (Controller<Budget>) new BudgetControllerFactory(currentUser).createController();
+            paymentReminderController = (Controller<IReminder>) new PaymentReminderControllerFactory(currentUser).createController();
+            budgetRemindController = (Controller<IReminder>) new BudgetReminderControllerFactory(currentUser).createController();
         } catch (Exception e) {
             showError("Error initializing user data", e);
         }
@@ -134,12 +120,6 @@ public class GUI {
         String phoneNumber = phoneField.getText();
         
         try {
-            // Validate inputs
-            if (email.isEmpty() || username.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "All fields are required", "Registration Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
             // Create user data dictionary
             Dictionary<String, String> userData = new Hashtable<>();
             userData.put("email", email);
@@ -164,7 +144,6 @@ public class GUI {
         
         try {
             userController.loginUser(email, password);
-            
             if (userController.isAuthenticated()) {
                 currentUser = userController.getUser();
                 initializeUserSpecificControllers();
@@ -606,40 +585,47 @@ public class GUI {
         JPanel reminderPanel = new JPanel();
         reminderPanel.setLayout(new BoxLayout(reminderPanel, BoxLayout.Y_AXIS));
         
-        JPanel addReminderPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        addReminderPanel.setBorder(BorderFactory.createTitledBorder("Add Payment Reminder"));
-        addReminderPanel.setMaximumSize(new Dimension(contentPanel.getWidth() - 20, 120));
+        JPanel addReminderPanel = new JPanel(new GridLayout(4, 2, 10, 10)); // Changed to 4 rows
+        addReminderPanel.setBorder(BorderFactory.createTitledBorder("Add Budget Reminder"));
+        addReminderPanel.setMaximumSize(new Dimension(contentPanel.getWidth() - 20, 150));
         
         JTextField messageField = new JTextField();
-        JTextField dateField = new JTextField(LocalDate.now().toString());
-        JTextField recurrenceField = new JTextField("0");
+        
+        // Create budget selection combo box
+        JComboBox<String> budgetCombo = new JComboBox<>();
+        List<Budget> budgets = budgetController.getAll();
+        for (Budget budget : budgets) {
+            budgetCombo.addItem(budget.getAnalysis()); // Or any other budget representation
+        }
         
         addReminderPanel.add(new JLabel("Message:"));
         addReminderPanel.add(messageField);
         
-        addReminderPanel.add(new JLabel("Date (yyyy-MM-dd):"));
-        addReminderPanel.add(dateField);
-        
-        addReminderPanel.add(new JLabel("Recurrence (days, 0 for one-time):"));
-        addReminderPanel.add(recurrenceField);
+        addReminderPanel.add(new JLabel("Select Budget:"));
+        addReminderPanel.add(budgetCombo);
         
         JButton addBtn = new JButton("Add Reminder");
         addBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         addBtn.addActionListener(e -> {
             try {
+                int selectedIndex = budgetCombo.getSelectedIndex();
+                if (selectedIndex < 0 || selectedIndex >= budgets.size()) {
+                    throw new IllegalArgumentException("Please select a budget");
+                }
+                
+                Budget selectedBudget = budgets.get(selectedIndex);
+                
                 Dictionary<String, String> reminderData = new Hashtable<>();
                 reminderData.put("message", messageField.getText());
-                reminderData.put("date", dateField.getText());
-                reminderData.put("recurrence", recurrenceField.getText());
+                reminderData.put("budgetId", selectedBudget.getId().toString());
                 
                 paymentReminderController.create(reminderData);
                 JOptionPane.showMessageDialog(frame, "Reminder added successfully!");
                 
                 // Clear fields
                 messageField.setText("");
-                dateField.setText(LocalDate.now().toString());
-                recurrenceField.setText("0");
+                budgetCombo.setSelectedIndex(0);
                 
                 // Refresh reminders list
                 showRemindersPanel(contentPanel);

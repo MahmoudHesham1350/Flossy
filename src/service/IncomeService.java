@@ -1,16 +1,9 @@
 package service;
-
-import storage.IncomeStorage;
 import java.util.Dictionary;
 
 import models.Income;
 
 public class IncomeService implements IService<Income> {
-    private IncomeStorage incomeStorage;
-
-    public IncomeService() throws Exception {
-        this.incomeStorage = new IncomeStorage();
-    }
 
     private boolean isValidAmount(double amount) {
         return amount > 0;
@@ -44,7 +37,4 @@ public class IncomeService implements IService<Income> {
         return new Income(source, amount, date);
     }
 
-    public Income getIncomeBySource(String source) {
-        return incomeStorage.getIncomeBySource(source);
-    }
 }
