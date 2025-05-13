@@ -1,7 +1,9 @@
 package models;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class Budget implements java.io.Serializable {
+    private final UUID id;
     private String category;
     private double amount;
     private double spentAmount;
@@ -9,6 +11,7 @@ public class Budget implements java.io.Serializable {
     private LocalDate createdDate;
 
     public Budget(String category, double amount, int recurrence) {
+        this.id = UUID.randomUUID();
         this.category = category;
         this.amount = amount;
         this.spentAmount = 0.0;
@@ -18,6 +21,9 @@ public class Budget implements java.io.Serializable {
 
     public Budget(String category, double amount) {
         this(category, amount, 0);
+    }
+    public UUID getId() {
+        return id;
     }
 
     public LocalDate getNextDate() {
