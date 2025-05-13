@@ -1,10 +1,8 @@
 import java.util.Scanner;
-import java.util.UUID;
 import java.util.List;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.time.LocalDate;
-
+import java.util.ArrayList;
 import controller.*;
 import Factory.*;
 import models.*;
@@ -19,6 +17,8 @@ public class CLI {
     private static Controller<Budget> budgetController;
     private static Controller<IReminder> paymentReminderController;
     private static Controller<IReminder> budgetRemindController;
+    private static Notification notification;
+    private static ReminderListener reminderListener;
 
     static {
         try {
@@ -35,6 +35,34 @@ public class CLI {
         budgetController = (Controller<Budget>) new BudgetControllerFactory(currentUser).createController();
         paymentReminderController = (Controller<IReminder>) new PaymentReminderControllerFactory(currentUser).createController();
         budgetRemindController = (Controller<IReminder>) new BudgetReminderControllerFactory(currentUser).createController();
+        
+        // Initialize notification system
+        notification = new Notification();
+        List<IReminder> allReminders = new ArrayList<>();
+        allReminders.addAll(paymentReminderController.getAll());
+        allReminders.addAll(budgetRemindController.getAll());
+        reminderListener = new ReminderListener(notification, allReminders);
+        reminderListener.checkReminders(); // Check for any pending reminders
+    }
+
+    private static void saveAllData() {
+        userController.save();
+        if (currentUser != null) {
+            try {
+                // Save expenses
+                expenseController.save();
+                // Save income records
+                incomeController.save();
+                // Save budgets
+                budgetController.save();
+                // Save reminders
+                paymentReminderController.save();
+                budgetRemindController.save();
+                System.out.println("All data saved successfully.");
+            } catch (Exception e) {
+                System.out.println("Error saving data: " + e.getMessage());
+            }
+        }
     }
 
     public static void main(String[] args) {
@@ -52,6 +80,7 @@ public class CLI {
                     loginUser();
                     break;
                 case "3":
+                    saveAllData();
                     System.out.println("Exiting. Goodbye!");
                     return;
                 default:
@@ -105,7 +134,15 @@ public class CLI {
 
     private static void userMenu() {
         while (true) {
+            // Check for any new reminders
+            reminderListener.checkReminders();
+            
+            int notificationCount = notification.getNumberOfReminders();
             System.out.println("\n--- User Menu ---");
+            if (notificationCount > 0) {
+                System.out.println("You have " + notificationCount + " notification(s)!");
+            }
+            
             System.out.println("1. View Profile");
             System.out.println("2. Add Expense");
             System.out.println("3. View Expenses");
@@ -114,7 +151,8 @@ public class CLI {
             System.out.println("6. Set Budget");
             System.out.println("7. View Budget");
             System.out.println("8. View Reminders");
-            System.out.println("9. Logout");
+            System.out.println("9. View Notifications");
+            System.out.println("10. Logout");
             System.out.print("Choose an option: ");
             String option = scanner.nextLine();
 
@@ -144,6 +182,10 @@ public class CLI {
                     viewReminders();
                     break;
                 case "9":
+                    viewNotifications();
+                    break;
+                case "10":
+                    saveAllData();
                     System.out.println("Logged out successfully.");
                     return;
                 default:
@@ -346,6 +388,18 @@ public class CLI {
                 System.out.println("Payment reminder added successfully.");
             } catch (Exception e) {
                 System.out.println("Failed to add reminder: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void viewNotifications() {
+        System.out.println("\n--- Notifications ---");
+        List<String> notifications = notification.getNotifications();
+        if (notifications.isEmpty()) {
+            System.out.println("No notifications available.");
+        } else {
+            for (String note : notifications) {
+                System.out.println(note);
             }
         }
     }

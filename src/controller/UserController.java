@@ -49,7 +49,13 @@ public class UserController implements IController<User> {
         storage.remove(user);
     }
 
-
+    public void save() {
+        try {
+            storage.save();
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving data", e);
+        }
+    }
     
     
 }

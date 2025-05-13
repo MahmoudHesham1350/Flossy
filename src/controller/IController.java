@@ -7,5 +7,5 @@ public interface IController<T> {
     public void create(Dictionary <String, String> data);
     public List<T> getAll();
     public void remove(T object);
-    
+    public void save();
 }

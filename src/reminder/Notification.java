@@ -6,7 +6,7 @@ import java.util.List;
 public class Notification {
     private List<IReminder> reminders;
 
-    Notification() {
+    public Notification() {
         this.reminders = new ArrayList<IReminder>();
     }
 
@@ -20,6 +20,14 @@ public class Notification {
     
     public List<IReminder> getReminders(){
         return reminders;
+    }
+
+    public List<String> getNotifications() {
+        List<String> notifications = new ArrayList<>();
+        for (IReminder reminder : reminders) {
+            notifications.add(reminder.getMessage());
+        }
+        return notifications;
     }
 
 }
