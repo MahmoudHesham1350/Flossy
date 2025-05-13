@@ -83,6 +83,22 @@ Flossy is organized into clear packages for models, controllers, services, stora
 
 ---
 
+## GUI Usage
+
+The GUI provides a modern, user-friendly interface for all Flossy features:
+
+- **Navigation**: Use the navigation bar at the bottom to switch between Profile, Expenses, Income, Budgets, Reminders, and Logout.
+- **Adding Data**: Each main page (Expenses, Income, Budgets, Reminders) has an "Add" button at the top. Clicking it opens a form to add a new entry.
+  - **Add Expense**: Enter category, amount, date, payment method, and whether it is recurring.
+  - **Add Income**: Enter source, amount, and date.
+  - **Add Budget**: Enter category, amount, and recurrence (in days).
+  - **Add Reminder**: Enter message, date, and select a budget. All fields are validated before submission.
+- **Validation**: The GUI checks for empty fields and correct date formats before submitting data. Errors are shown in dialog boxes.
+- **Notifications**: The top of the window displays notifications for triggered reminders.
+- **Data Persistence**: All data is saved automatically on logout.
+
+---
+
 ## Key Design Patterns
 - **MVC**: Models represent data, Controllers handle logic, CLI/GUI are the views.
 - **Factory Pattern**: Used for controller instantiation, ensuring correct dependencies.
@@ -182,58 +198,4 @@ Flossy is organized into clear packages for models, controllers, services, stora
 - Implements `IReminder`, represents a reminder for payments, with message, date, and recurrence logic.
 
 ### models/BudgetReminder.java
-- Implements `IReminder`, represents a reminder for budgets, linked to a `Budget` object.
-
-### reminder/IReminder.java
-- Interface for reminders, with methods for message, occurrence, and trigger logic.
-
-### reminder/Notification.java
-- Holds a list of triggered reminders and provides notification messages.
-
-### reminder/ReminderListener.java
-- Observes reminders, checks if they are triggered, and adds them to notifications.
-
-### storage/UltraSimpleStorage.java
-- Abstract class for file-based storage of serializable objects. Handles save/load/add/remove/getAll.
-
-### storage/UserStorage.java
-- Stores all users in `users.dat`.
-
-### storage/ExpenseStorage.java
-- Stores expenses per user in `<userID>Expense.dat`.
-
-### storage/IncomeStorage.java
-- Stores incomes per user in `<userID>Income.dat`.
-
-### storage/BudgetStorage.java
-- Stores budgets per user in `<userID>budget.dat`.
-
-### storage/ReminderStorage.java
-- Stores reminders per user in `<userID>reminders.dat`.
-
-### service/IService.java
-- Interface for validation logic for all services.
-
-### service/UserService.java
-- Validates user data and handles login logic.
-
-### service/ExpenseService.java
-- Validates expense data.
-
-### service/IncomeService.java
-- Validates income data.
-
-### service/BudgetService.java
-- Validates budget data.
-
-### service/PaymentReminderService.java
-- Validates payment reminder data.
-
-### service/BudgetReminderService.java
-- Validates budget reminder data, links reminders to budgets.
-
----
-
-## Summary
-
-Flossy is a well-structured, extensible Java application for personal finance, using clear separation of concerns, design patterns, and persistent storage. The codebase is easy to maintain and extend, with each component having a clear responsibility.
+- Implements `IReminder`, represents a reminder for budgets, linked to a `Budget`
