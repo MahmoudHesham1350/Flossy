@@ -1,0 +1,283 @@
+// This file aggregates all classes, their attributes, and methods from the codebase for reference.
+// For brevity, only class/interface/attribute/method signatures are included, not full implementations.
+
+// --- MODELS ---
+package models;
+
+public class User implements Serializable {
+    private final UUID id;
+    private String email;
+    private String username;
+    private String password;
+    private String phoneNumber;
+    public User(String email, String username, String password, String phoneNumber);
+    public boolean checkPassword(String password);
+    public String getEmail();
+    public UUID getID();
+    public void setPassword(String password);
+    public void setUsername(String username);
+    public void setPhoneNumber(String phoneNumber);
+    public Dictionary<String, String> getUserInfo();
+}
+
+public class Expense implements Serializable {
+    private String category;
+    private double amount;
+    private String date;
+    private String paymentMethod;
+    private boolean isRecurring;
+    public Expense(String category, double amount, String date);
+    public String getCategory();
+    public double getAmount();
+    public String getDate();
+    public void addExpense(String category, double amount, String date);
+    public void deleteExpense(String category, double amount, String date);
+    public void updateExpense(String category, double amount, String date);
+    public void setPaymentMethod(String paymentMethod);
+    public void setRecurring(boolean isRecurring);
+    public String getPaymentMethod();
+    public boolean isRecurring();
+    public Dictionary<String, String> getExpenseInfo();
+}
+
+public class Income implements Serializable {
+    private String source;
+    private double amount;
+    private String date;
+    public Income(String source, double amount, String date);
+    public String getSource();
+    public double getAmount();
+    public String getDate();
+    public void addIncome(String source, double amount, String date);
+    public void deleteIncome(String source, double amount, String date);
+    public void updateIncome(String source, double amount, String date);
+    public Dictionary<String, String> getIncomeInfo();
+}
+
+public class Budget implements Serializable {
+    private final UUID id;
+    private String category;
+    private double amount;
+    private double spentAmount;
+    private int recurrence;
+    private LocalDate createdDate;
+    public Budget(String category, double amount, int recurrence);
+    public Budget(String category, double amount);
+    public UUID getId();
+    public LocalDate getNextDate();
+    public void nextPeriod();
+    public boolean isOneTime();
+    public void addSpending(double amount);
+    public void resetSpentAmount();
+    public boolean isExceeded();
+    public String getAnalysis();
+}
+
+public class PaymentReminder implements IReminder {
+    private String message;
+    private LocalDate reminderDate;
+    private int recurrence;
+    public PaymentReminder(String message, LocalDate reminderDate);
+    public void nextOccurrence();
+    public boolean isTriggered();
+    public boolean isOneTime();
+    public String getMessage();
+}
+
+public class BudgetReminder implements IReminder {
+    private String title;
+    private Budget budget;
+    public BudgetReminder(String message, Budget budget);
+    public void nextOccurrence();
+    public boolean isTriggered();
+    public boolean isOneTime();
+    public String getMessage();
+}
+
+// --- REMINDER ---
+package reminder;
+
+public interface IReminder extends Serializable {
+    String getMessage();
+    void nextOccurrence();
+    boolean isTriggered();
+    boolean isOneTime();
+}
+
+public class Notification {
+    private List<IReminder> reminders;
+    public Notification();
+    public int getNumberOfReminders();
+    public void addReminder(IReminder reminder);
+    public List<IReminder> getReminders();
+    public List<String> getNotifications();
+}
+
+public class ReminderListener {
+    private Notification notification;
+    private List<IReminder> reminders;
+    public ReminderListener(Notification notification, List<IReminder> reminders);
+    public void checkReminders();
+}
+
+// --- STORAGE ---
+package storage;
+
+public abstract class UltraSimpleStorage<T extends Serializable> {
+    private final String filename;
+    protected List<T> storage;
+    public UltraSimpleStorage(String filename);
+    public void save() throws IOException;
+    public List<T> load() throws IOException, ClassNotFoundException;
+    public void add(T object);
+    public void remove(T object);
+    public List<T> getAll();
+}
+
+public class UserStorage extends UltraSimpleStorage<User> {
+    public UserStorage() throws IOException, ClassNotFoundException;
+    public User getUserByEmail(String email);
+}
+
+public class ExpenseStorage extends UltraSimpleStorage<Expense> {
+    public ExpenseStorage(UUID userID) throws IOException, ClassNotFoundException;
+    public Expense getIncomeByCategory(String category);
+}
+
+public class IncomeStorage extends UltraSimpleStorage<Income> {
+    public IncomeStorage(UUID userID) throws IOException, ClassNotFoundException;
+    public Income getIncomeBySource(String source);
+}
+
+public class BudgetStorage extends UltraSimpleStorage<Budget> {
+    public BudgetStorage(UUID userID);
+    public Budget getById(UUID id);
+}
+
+public class ReminderStorage extends UltraSimpleStorage<IReminder> {
+    public ReminderStorage(UUID userID) throws IOException, ClassNotFoundException;
+}
+
+// --- SERVICE ---
+package service;
+
+public interface IService<T extends Serializable> {
+    public T validate(Dictionary<String, String> data) throws IllegalArgumentException;
+}
+
+public class UserService implements IService<User> {
+    UserStorage userStorage;
+    public UserService(UserStorage storage) throws Exception;
+    private boolean isValidEmail(String email);
+    public boolean isValidPassword(String password);
+    public User validate(Dictionary<String, String> data) throws IllegalArgumentException;
+    public User login(String email, String password) throws IllegalArgumentException;
+}
+
+public class ExpenseService implements IService<Expense> {
+    private boolean isValidAmount(double amount);
+    private boolean isValidCategory(String category);
+    private boolean isValidDate(String date);
+    private boolean isValidPaymentMethod(String paymentMethod);
+    public Expense validate(Dictionary<String, String> data) throws IllegalArgumentException;
+}
+
+public class IncomeService implements IService<Income> {
+    private boolean isValidAmount(double amount);
+    private boolean isValidSource(String source);
+    private boolean isValidDate(String date);
+    public Income validate(Dictionary<String, String> data) throws IllegalArgumentException;
+}
+
+public class BudgetService implements IService<Budget> {
+    public Budget validate(Dictionary<String, String> data);
+}
+
+public class PaymentReminderService implements IService<IReminder> {
+    public PaymentReminder validate(Dictionary<String, String> data) throws IllegalArgumentException;
+}
+
+public class BudgetReminderService implements IService<IReminder> {
+    private BudgetStorage budgetStorage;
+    public BudgetReminderService(UUID userId);
+    public BudgetReminder validate(Dictionary<String, String> data) throws IllegalArgumentException;
+}
+
+// --- CONTROLLER ---
+package controller;
+
+public interface IController<T> {
+    public void create(Dictionary<String, String> data);
+    public List<T> getAll();
+    public void remove(T object);
+    public void save();
+}
+
+public class Controller<T extends Serializable> implements IController<T> {
+    protected IService<T> service;
+    private UltraSimpleStorage<T> storage;
+    public Controller(IService<T> service, UltraSimpleStorage<T> storage);
+    public void create(Dictionary<String, String> data) throws IllegalArgumentException;
+    public List<T> getAll();
+    public void remove(T object);
+    public void save();
+}
+
+public class UserController implements IController<User> {
+    private User user;
+    private final UserService service;
+    private final UserStorage storage;
+    public UserController(UserService service, UserStorage storage) throws Exception;
+    public void loginUser(String email, String password) throws Exception;
+    public void create(Dictionary<String, String> data);
+    public List<User> getAll();
+    public boolean isAuthenticated();
+    public User getUser();
+    public void remove(User user);
+    public void save();
+}
+
+// --- FACTORY ---
+package Factory;
+
+public interface IControllerFactory<T> {
+    public IController<T> createController() throws ClassNotFoundException, IOException, Exception;
+}
+
+public class UserControllerFactory implements IControllerFactory<User> {
+    public IController<User> createController() throws ClassNotFoundException, IOException, Exception;
+}
+
+public class ExpenseControllerFactory implements IControllerFactory<Expense> {
+    User user;
+    public ExpenseControllerFactory(User loggedInUser);
+    public IController<Expense> createController() throws ClassNotFoundException, IOException, Exception;
+}
+
+public class IncomeControllerFactory implements IControllerFactory<Income> {
+    User user;
+    public IncomeControllerFactory(User loggedInUser);
+    public IController<Income> createController() throws ClassNotFoundException, IOException, Exception;
+}
+
+public class BudgetControllerFactory implements IControllerFactory<Budget> {
+    User user;
+    public BudgetControllerFactory(User logedinUser);
+    public IController<Budget> createController() throws ClassNotFoundException, IOException, Exception;
+}
+
+public class PaymentReminderControllerFactory implements IControllerFactory<IReminder> {
+    User user;
+    public PaymentReminderControllerFactory(User logedinUser);
+    public IController<IReminder> createController() throws ClassNotFoundException, Exception;
+}
+
+public class BudgetReminderControllerFactory implements IControllerFactory<IReminder> {
+    private User user;
+    public BudgetReminderControllerFactory(User loggedInUser);
+    public IController<IReminder> createController() throws ClassNotFoundException, IOException, Exception;
+}
+
+// --- CLI & GUI ---
+// CLI and GUI classes are not included here as they are not typical model/controller/service classes.
+// See CLI.java and GUI.java for their methods and fields.
